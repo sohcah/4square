@@ -121,8 +121,6 @@ async function runRow(row: number) {
       return setTimeout(() => alert("YOU WON!"), 700);
     }
 
-    await sleep(500);
-
     // Play Move
     var block = [];
     var move = null;
@@ -160,6 +158,7 @@ async function runRow(row: number) {
       for (var x of xArray) {
         if (grid[x].indexOf(0) === -1) continue;
         let index = grid[x].indexOf(0);
+        if (index >= 5) continue;
         grid[x][index + 1] = 1;
         if (checkGrid(grid)) {
           moveText = "NO_GIFT";
@@ -204,9 +203,11 @@ async function runRow(row: number) {
       move = xArray.find((x) => grid[x].indexOf(0) !== -1);
     }
     if (move !== null && move !== undefined) {
-      circles.push([move, grid[move].indexOf(0), time]);
-      latestMove = [move, grid[move].indexOf(0)];
-      grid[move][grid[move].indexOf(0)] = 2;
+      let index = grid[move].indexOf(0);
+      latestMove = [move, index];
+      grid[move][index] = 2;
+      await sleep(500);
+      circles.push([move, index, time]);
     }
     var el = document.getElementById("moveText");
     if (el) {
