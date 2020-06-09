@@ -304,7 +304,10 @@ app.ticker.add((delta: number) => {
     backdropCircles.drawCircle(
       circleSize * (circle[0] + 0.5) + x_offset,
       (circleSize * (5 - circle[1] + 0.5) + y_offset) *
-        Math.min(1, (time - 7 - circle[2]) / (circle[4] || 30)),
+        Math.min(
+          1,
+          (((time - 7 - circle[2]) / (circle[4] || 30)) * 6) / (6 - circle[1])
+        ),
       circleSize / 2.5
     );
     backdropCircles.endFill();
