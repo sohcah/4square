@@ -4,10 +4,8 @@ console.log(winners);
 
 // Create PIXI Renderer
 const app = new PIXI.Application({
-  width: window.innerWidth,
-  height: window.innerHeight,
+  resizeTo: window,
   backgroundColor: 0x2222ff,
-  resolution: 1,
 });
 document.body.appendChild(app.view);
 
@@ -22,7 +20,6 @@ moveTextEl.style.fontSize = "24px";
 
 // Window Resize Handler
 function handleResizeEvent() {
-  app.renderer.resize(window.innerWidth, window.innerHeight);
   min = window.innerWidth / 7 < window.innerHeight / 6 ? "width" : "height";
   circleSize = Math.min(window.innerWidth / 7, window.innerHeight / 6);
   x_offset = (window.innerWidth - 7 * circleSize) / 2;
