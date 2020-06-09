@@ -191,6 +191,11 @@ document.addEventListener("click", (ev) => {
   }
 });
 
+document.addEventListener("touchend", (ev) => {
+  var row = Math.floor((ev.changedTouches[0].clientX - x_offset) / circleSize);
+  runRow(row);
+});
+
 document.addEventListener("keypress", (ev) => {
   if (["1", "2", "3", "4", "5", "6", "7"].includes(ev.key)) {
     var row = Number(ev.key) - 1;
