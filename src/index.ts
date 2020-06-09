@@ -1,11 +1,17 @@
 import * as PIXI from "pixi.js";
 import winners from "./winners";
-console.log(winners);
+
+function sleep(time: number) {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => resolve(true), time);
+  });
+}
 
 // Create PIXI Renderer
 const app = new PIXI.Application({
   resizeTo: window,
   backgroundColor: 0x000000,
+  antialias: true,
 });
 document.body.appendChild(app.view);
 
@@ -48,6 +54,8 @@ var colors: number[] = [0x000000, 0xffff00, 0xff0000, 0x00ff00];
 // Setup Circles
 var backdropCircles = new PIXI.Graphics();
 app.stage.addChild(backdropCircles);
+var backdropBoard = new PIXI.Graphics();
+app.stage.addChild(backdropBoard);
 
 // Circle Size
 var min =
@@ -83,9 +91,10 @@ function shuffle(a: any[]) {
 var xArray = [0, 1, 2, 3, 4, 5, 6];
 var moved = false;
 var win: number[][] = [];
+var circles: number[][] = [];
 var latestMove: number[] = [];
 
-function runRow(row: number) {
+async function runRow(row: number) {
   if (checkGrid(grid)) {
     return alert(
       "This game is already over. Refresh the page to start a new game."
@@ -101,14 +110,18 @@ function runRow(row: number) {
         }
         grid.push(col);
       }
+      circles = [];
     }
     moved = true;
+    circles.push([row, grid[row].indexOf(0), time]);
     grid[row][grid[row].indexOf(0)] = 1;
     var youWon = checkGrid(grid);
     if (youWon) {
       win = youWon;
-      return alert("YOU WON!");
+      return setTimeout(() => alert("YOU WON!"), 700);
     }
+
+    await sleep(500);
 
     // Play Move
     var block = [];
@@ -191,6 +204,7 @@ function runRow(row: number) {
       move = xArray.find((x) => grid[x].indexOf(0) !== -1);
     }
     if (move !== null && move !== undefined) {
+      circles.push([move, grid[move].indexOf(0), time]);
       latestMove = [move, grid[move].indexOf(0)];
       grid[move][grid[move].indexOf(0)] = 2;
     }
@@ -202,7 +216,7 @@ function runRow(row: number) {
     if (comWon) {
       win = comWon;
       console.log(comWon);
-      alert("THE COMPUTER WON!");
+      setTimeout(() => alert("THE COMPUTER WON!"), 700);
     }
   }
 }
@@ -227,29 +241,26 @@ document.addEventListener("keypress", (ev) => {
 });
 
 var ticker = 0;
+var time = 0;
 
 app.ticker.add((delta: number) => {
   ticker += delta;
-  if (ticker > 30 && !moved) {
+  time += delta;
+  if (ticker > 50 && !moved) {
     var tick = Math.floor(Math.random() * 140);
-    grid = [];
-    for (let x = 0; x < 7; x++) {
-      let col = [];
-      for (var y = 0; y < 6; y++) {
-        col.push(0);
-      }
-      grid.push(col);
-    }
+    circles = [];
     for (var i = 0; i < 4; i++) {
       let x = winners[tick][i];
-      grid[x[0]][x[1]] = 3;
+      circles.push([x[0], x[1], time, 3, 8]);
     }
-    ticker = ticker % 30;
+    console.log(circles);
+    ticker = ticker % 50;
   }
   backdropCircles.clear();
-  backdropCircles.lineStyle(0);
-  backdropCircles.beginFill(0x2222ff);
-  backdropCircles.drawRoundedRect(
+  backdropBoard.clear();
+  backdropBoard.lineStyle(0);
+  backdropBoard.beginFill(0x2222ff);
+  backdropBoard.drawRoundedRect(
     x_offset,
     y_offset,
     circleSize * 7,
@@ -259,21 +270,43 @@ app.ticker.add((delta: number) => {
   backdropCircles.endFill();
   for (let x = 0; x < 7; x++) {
     for (let y = 0; y < 6; y++) {
-      backdropCircles.lineStyle(
-        circleSize / 20,
-        win.map((i) => i.slice(0, 2).join(",")).includes([x, 5 - y].join(","))
-          ? 0x00ff00
-          : latestMove.join(",") === [x, 5 - y].join(",")
-          ? 0xffffff
-          : 0x000000
-      );
-      backdropCircles.beginFill(colors[grid[x][5 - y]] ?? 0x00ff00, 1);
-      backdropCircles.drawCircle(
+      backdropBoard.beginHole();
+      backdropBoard.drawCircle(
         circleSize * (x + 0.5) + x_offset,
         circleSize * (y + 0.5) + y_offset,
         circleSize / 2.5
       );
-      backdropCircles.endFill();
+      backdropBoard.endHole();
     }
+  }
+  for (var circle of circles) {
+    backdropCircles.lineStyle(
+      circleSize /
+        (win
+          .map((i) => i.slice(0, 2).join(","))
+          .includes([circle[0], circle[1]].join(","))
+          ? 10
+          : latestMove.join(",") === [circle[0], circle[1]].join(",")
+          ? 20
+          : 0),
+      win
+        .map((i) => i.slice(0, 2).join(","))
+        .includes([circle[0], circle[1]].join(","))
+        ? 0x00ff00
+        : latestMove.join(",") === [circle[0], circle[1]].join(",")
+        ? 0xffffff
+        : 0x000000
+    );
+    backdropCircles.beginFill(
+      colors[circle[3] || grid[circle[0]][circle[1]]] ?? 0x00ff00,
+      1
+    );
+    backdropCircles.drawCircle(
+      circleSize * (circle[0] + 0.5) + x_offset,
+      (circleSize * (5 - circle[1] + 0.5) + y_offset) *
+        Math.min(1, (time - 7 - circle[2]) / (circle[4] || 30)),
+      circleSize / 2.5
+    );
+    backdropCircles.endFill();
   }
 });
