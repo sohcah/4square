@@ -43,8 +43,7 @@ for (let x = 0; x < 7; x++) {
   grid.push(col);
 }
 
-var colors: number[] = [0x000000, 0xffff00, 0xff0000, 0xffff00, 0xff0000];
-var borders: number[] = [0x000000, 0x000000, 0x000000, 0xffffff, 0xffffff];
+var colors: number[] = [0x000000, 0xffff00, 0xff0000, 0x00ff00];
 
 // Setup Circles
 var backdropCircles = new PIXI.Graphics();
@@ -62,23 +61,14 @@ var circleSize = Math.min(
 var x_offset = (window.innerWidth - 7 * circleSize) / 2;
 var y_offset = (window.innerHeight - 6 * circleSize) / 2;
 
-var ticker = 0;
-var tick = 0;
-
 function checkGrid(grid: number[][]) {
   var x = (i: number) => grid[w[i][0]][w[i][1]];
   for (var w of winners) {
     if (x(0) > 0 && x(0) < 3 && x(0) == x(1) && x(1) == x(2) && x(2) == x(3)) {
-      // grid[w[0][0]][w[0][1]] = x(0) + 2;
-      // grid[w[1][0]][w[1][1]] = x(1) + 2;
-      // grid[w[2][0]][w[2][1]] = x(2) + 2;
-      // grid[w[3][0]][w[3][1]] = x(3) + 2;
-      // console.log("Win!", w);
       return w;
     }
   }
   return false;
-  // return grid;
 }
 
 var level = 5000;
@@ -91,15 +81,36 @@ function shuffle(a: any[]) {
   return a;
 }
 var xArray = [0, 1, 2, 3, 4, 5, 6];
+var moved = false;
+var win: number[][] = [];
+var latestMove: number[] = [];
 
 function runRow(row: number) {
+  if (checkGrid(grid)) {
+    return alert(
+      "This game is already over. Refresh the page to start a new game."
+    );
+  }
   if (grid[row].indexOf(0) !== -1) {
+    if (moved == false) {
+      grid = [];
+      for (let x = 0; x < 7; x++) {
+        let col = [];
+        for (var y = 0; y < 6; y++) {
+          col.push(0);
+        }
+        grid.push(col);
+      }
+    }
+    moved = true;
     grid[row][grid[row].indexOf(0)] = 1;
-    if (checkGrid(grid)) {
+    var youWon = checkGrid(grid);
+    if (youWon) {
+      win = youWon;
       return alert("YOU WON!");
     }
 
-    // Play Random Move
+    // Play Move
     var block = [];
     var move = null;
     var moveText = "RANDOM";
@@ -124,7 +135,6 @@ function runRow(row: number) {
         let index = grid[x].indexOf(0);
         grid[x][index] = 1;
         if (checkGrid(grid)) {
-          alert("Blocked Win");
           moveText = "BLOCK_WIN";
           move = x;
           grid[x][index] = 0;
@@ -181,13 +191,17 @@ function runRow(row: number) {
       move = xArray.find((x) => grid[x].indexOf(0) !== -1);
     }
     if (move !== null && move !== undefined) {
+      latestMove = [move, grid[move].indexOf(0)];
       grid[move][grid[move].indexOf(0)] = 2;
     }
     var el = document.getElementById("moveText");
     if (el) {
       el.innerText = moveText;
     }
-    if (checkGrid(grid)) {
+    var comWon = checkGrid(grid);
+    if (comWon) {
+      win = comWon;
+      console.log(comWon);
       alert("THE COMPUTER WON!");
     }
   }
@@ -212,27 +226,26 @@ document.addEventListener("keypress", (ev) => {
   }
 });
 
+var ticker = 0;
+
 app.ticker.add((delta: number) => {
   ticker += delta;
-  // if (ticker > 30) {
-  //   tick = Math.floor(Math.random() * 140);
-  //   grid = [];
-  //   for (let x = 0; x < 7; x++) {
-  //     let col = [];
-  //     for (var y = 0; y < 6; y++) {
-  //       col.push(0);
-  //     }
-  //     grid.push(col);
-  //   }
-  //   // var q = Math.ceil(Math.random() * 2);
-  //   for (var i = 0; i < 4; i++) {
-  //     let x = winners[tick][i];
-  //     grid[x[0]][x[1]] = 3;
-  //     // colors[3] = Math.floor(Math.random() * 0xffffff + 1);
-  //     colors[3] = 0xffffff;
-  //   }
-  //   ticker = ticker % 30;
-  // }
+  if (ticker > 30 && !moved) {
+    var tick = Math.floor(Math.random() * 140);
+    grid = [];
+    for (let x = 0; x < 7; x++) {
+      let col = [];
+      for (var y = 0; y < 6; y++) {
+        col.push(0);
+      }
+      grid.push(col);
+    }
+    for (var i = 0; i < 4; i++) {
+      let x = winners[tick][i];
+      grid[x[0]][x[1]] = 3;
+    }
+    ticker = ticker % 30;
+  }
   backdropCircles.clear();
   backdropCircles.lineStyle(0);
   backdropCircles.beginFill(0x2222ff);
@@ -246,7 +259,14 @@ app.ticker.add((delta: number) => {
   backdropCircles.endFill();
   for (let x = 0; x < 7; x++) {
     for (let y = 0; y < 6; y++) {
-      backdropCircles.lineStyle(circleSize / 20, borders[grid[x][5 - y]]);
+      backdropCircles.lineStyle(
+        circleSize / 20,
+        win.map((i) => i.slice(0, 2).join(",")).includes([x, 5 - y].join(","))
+          ? 0x00ff00
+          : latestMove.join(",") === [x, 5 - y].join(",")
+          ? 0xffffff
+          : 0x000000
+      );
       backdropCircles.beginFill(colors[grid[x][5 - y]] ?? 0x00ff00, 1);
       backdropCircles.drawCircle(
         circleSize * (x + 0.5) + x_offset,
