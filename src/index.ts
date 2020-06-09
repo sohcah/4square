@@ -5,7 +5,7 @@ console.log(winners);
 // Create PIXI Renderer
 const app = new PIXI.Application({
   resizeTo: window,
-  backgroundColor: 0x2222ff,
+  backgroundColor: 0x000000,
 });
 document.body.appendChild(app.view);
 
@@ -20,8 +20,14 @@ moveTextEl.style.fontSize = "24px";
 
 // Window Resize Handler
 function handleResizeEvent() {
-  min = window.innerWidth / 7 < window.innerHeight / 6 ? "width" : "height";
-  circleSize = Math.min(window.innerWidth / 7, window.innerHeight / 6);
+  min =
+    (window.innerWidth - 16) / 7 < (window.innerHeight - 16) / 6
+      ? "width"
+      : "height";
+  circleSize = Math.min(
+    (window.innerWidth - 16) / 7,
+    (window.innerHeight - 16) / 6
+  );
   x_offset = (window.innerWidth - 7 * circleSize) / 2;
   y_offset = (window.innerHeight - 6 * circleSize) / 2;
 }
@@ -45,8 +51,14 @@ var backdropCircles = new PIXI.Graphics();
 app.stage.addChild(backdropCircles);
 
 // Circle Size
-var min = window.innerWidth / 7 < window.innerHeight / 6 ? "width" : "height";
-var circleSize = Math.min(window.innerWidth / 7, window.innerHeight / 6);
+var min =
+  (window.innerWidth - 16) / 7 < (window.innerHeight - 16) / 6
+    ? "width"
+    : "height";
+var circleSize = Math.min(
+  (window.innerWidth - 16) / 7,
+  (window.innerHeight - 16) / 6
+);
 var x_offset = (window.innerWidth - 7 * circleSize) / 2;
 var y_offset = (window.innerHeight - 6 * circleSize) / 2;
 
@@ -222,6 +234,16 @@ app.ticker.add((delta: number) => {
   //   ticker = ticker % 30;
   // }
   backdropCircles.clear();
+  backdropCircles.lineStyle(0);
+  backdropCircles.beginFill(0x2222ff);
+  backdropCircles.drawRoundedRect(
+    x_offset,
+    y_offset,
+    circleSize * 7,
+    circleSize * 6,
+    circleSize * 0.1
+  );
+  backdropCircles.endFill();
   for (let x = 0; x < 7; x++) {
     for (let y = 0; y < 6; y++) {
       backdropCircles.lineStyle(circleSize / 20, borders[grid[x][5 - y]]);
