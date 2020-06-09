@@ -184,7 +184,7 @@ function runRow(row: number) {
   }
 }
 
-app.view.addEventListener("click", (ev) => {
+document.addEventListener("click", (ev) => {
   if (ev.button === 0) {
     var row = Math.floor((ev.clientX - x_offset) / circleSize);
     runRow(row);
