@@ -13,7 +13,7 @@
     "build": "webpack -p --mode production"
   },
   "dependencies": {
-    "pixi.js": "^5.2.4"
+    "pixi.js": "^6.1.0"
   },
   "devDependencies": {
     "@babel/core": "^7.10.2",
